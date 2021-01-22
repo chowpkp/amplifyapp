@@ -7,13 +7,11 @@ import { createNote as createNoteMutation, deleteNote as deleteNoteMutation } fr
 
 
 
-
-
 // Load the AWS SDK for Node.js
 var AWS = require('aws-sdk');
 
 // Set the region 
-AWS.config.update({ "accessKeyId": "AKIAJPR5KVL4AAVTNIOQ", "secretAccessKey": "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", "region": "us-east-1" });
+AWS.config.update({ "accessKeyId": "", "secretAccessKey": "", "region": "us-east-1" });
 
 
 
