@@ -6,6 +6,19 @@ import { listNotes } from './graphql/queries';
 import { createNote as createNoteMutation, deleteNote as deleteNoteMutation } from './graphql/mutations';
 
 
+
+
+
+// Load the AWS SDK for Node.js
+var AWS = require('aws-sdk');
+
+// Set the region 
+AWS.config.update({ "accessKeyId": "AKIAJPR5KVL4AAVTNIOQ", "secretAccessKey": "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", "region": "us-east-1" });
+
+
+
+
+
 const initialFormState = { name: '', description: '' }
 
 function App() {
@@ -37,6 +50,60 @@ function App() {
     setNotes(apiData.data.listNotes.items);
   }  
 
+
+
+  async function emailConfirmation(noteTitle, noteDescription, noteImage) {
+
+      
+    // Create sendEmail params 
+    var params = {
+      Destination: { /* required */
+        ToAddresses: [
+          'aws.philc@gmail.com',
+          /* more items */
+        ]
+      },
+      Message: { /* required */
+        Body: { /* required */
+          Html: {
+          Charset: "UTF-8",
+          Data: "<h1>Thank you for you note. :-) </h1><br/><h3>Note Title:   "+noteTitle+"<br/>Description: "+noteDescription+"</h3><br/><img src='"+noteImage+"' style='width: 200px' />"
+          },
+          Text: {
+          Charset: "UTF-8",
+          Data: "This is a plan text body."
+          }
+        },
+        Subject: {
+          Charset: 'UTF-8',
+          Data: 'You submitted your note, good job!'
+        }
+        },
+      Source: 'aws.philc@gmail.com', /* required */
+      ReplyToAddresses: [
+        'aws.philc@gmail.com',
+        /* more items */
+      ],
+    };
+
+    // Create the promise and SES service object
+    var sendPromise = new AWS.SES({apiVersion: '2010-12-01'}).sendEmail(params).promise();
+
+    // Handle promise's fulfilled/rejected states
+    sendPromise.then(
+      function(data) {
+        console.log(data.MessageId);
+      }).catch(
+        function(err) {
+        console.error(err, err.stack);
+      });
+
+
+
+
+  }
+
+
   async function createNote() {
     if (!formData.name || !formData.description) return;
     await API.graphql({ query: createNoteMutation, variables: { input: formData } });
@@ -44,6 +111,7 @@ function App() {
       const image = await Storage.get(formData.image);
       formData.image = image;
     }
+    emailConfirmation(formData.name, formData.description, formData.image);
     setNotes([ ...notes, formData ]);
     setFormData(initialFormState);
   }
